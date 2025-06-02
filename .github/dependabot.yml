@@ -1,0 +1,7 @@
+# Dependabot configuration file
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/devkey-frontend"
+    schedule:
+      interval: "weekly"
