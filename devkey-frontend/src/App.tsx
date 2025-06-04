@@ -1,10 +1,15 @@
 // src/App.tsx
-import TrainingPage from './pages/TrainingPage';
+import TypingTrainer from './components/TypingTrainer';
 import './App.css'; // Ou seu CSS global, se houver
+import Header from './components/header';
+import './index.css';
 
 function App() {
   return (
-    <TrainingPage />
+    <>
+      <Header />
+      <TypingTrainer />
+    </>
   );
 }
 
