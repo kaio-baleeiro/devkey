@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevKey - Treino de Digitação</title>
+    <style>
+        /* Estilos Globais e Tema Inspirado no Keybr.com */
+        :root {
+            --bg-color: #323437; /* Cinza escuro principal do Keybr */
+            --text-color: #d1d0c5; /* Texto claro principal */
+            --text-muted-color: #646669;
+            --highlight-color: #e2b714; /* Amarelo usado em destaques no Keybr */
+            --error-color: #ca4754;   /* Vermelho para erros */
+            --correct-color: #6aaa64; /* Verde para acertos (aproximado) */
+            --key-bg: #4a4d50; /* Cor de fundo para elementos de UI como checkboxes e char selectors */
+            --key-text: #d1d0c5;
+            --disabled-char-bg: #ca4754; /* Vermelho para caracteres desabilitados */
+            --checkbox-border-color: #6272a4;
+            --checkbox-checked-bg: #44475a;
+            --checkbox-checked-border: #50fa7b;
+            --checkbox-check-color: #50fa7b;
+        }
+
+        body {
+            font-family: 'Roboto Mono', 'Courier New', Courier, monospace;
+            line-height: 1.6;
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 900px; 
+        }
+        
+        .metrics-display {
+            display: flex;
+            justify-content: space-around; 
+            flex-wrap: wrap; /* Permite quebra de linha em telas menores */
+            width: 100%;
+            padding: 10px 0;
+            margin-bottom: 20px; 
+            font-size: 0.9em;
+            color: var(--text-muted-color);
+            border-bottom: 1px solid var(--key-bg); 
+        }
+        .metrics-display div {
+            margin: 5px 10px; /* Espaçamento entre itens de métrica */
+        }
+        .metrics-display span {
+            color: var(--text-color); 
+            font-weight: bold;
+        }
+        .metrics-display strong { 
+             color: var(--text-muted-color);
+             margin-right: 5px;
+        }
+
+        .settings-section {
+            background-color: rgba(0,0,0,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        .settings-section p {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            color: var(--text-muted-color);
+        }
+        .settings-section strong {
+            color: var(--text-color);
+        }
+
+
+        #availableCharsSetContainer {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        #availableCharsSetContainer .char-selector {
+            display: inline-block;
+            padding: 5px 9px;
+            margin: 3px;
+            background-color: var(--key-bg); 
+            color: var(--key-text);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            user-select: none;
+            font-size: 0.95em;
+        }
+
+        #availableCharsSetContainer .char-selector:hover {
+            background-color: #5f6266; 
+            transform: scale(1.1);
+        }
+
+        #availableCharsSetContainer .char-selector.disabled { 
+            background-color: var(--disabled-char-bg); 
+            color: var(--text-color); /* Mantém texto claro para contraste */
+            /* text-decoration: line-through; */
+        }
+        
+        .flags-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px; /* Espaço entre os checkboxes */
+            justify-content: center;
+            padding-top: 10px;
+        }
+        .flags-display .custom-checkbox-label {
+            display: inline-flex; 
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            color: var(--text-color);
+            position: relative; 
+        }
+
+        .flags-display input[type="checkbox"] {
+            opacity: 0; 
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+
+        .flags-display .custom-checkbox-span {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--checkbox-border-color); 
+            border-radius: 4px;
+            display: inline-block;
+            margin-right: 0.8rem;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            position: relative; 
+        }
+
+        .flags-display input[type="checkbox"]:checked + .custom-checkbox-span::after {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 1px;
+            width: 5px;
+            height: 10px;
+            border: solid var(--checkbox-check-color); 
+            border-width: 0 3px 3px 0;
+            transform: rotate(45deg);
+        }
+
+        .flags-display input[type="checkbox"]:checked + .custom-checkbox-span {
+            background-color: var(--checkbox-checked-bg); 
+            border-color: var(--checkbox-checked-border); 
+        }
+
+        .flags-display input[type="checkbox"]:focus + .custom-checkbox-span {
+            box-shadow: 0 0 0 2px rgba(80, 250, 123, 0.3); 
+        }
+
+
+        .typing-area-container {
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .text-to-type-box {
+            font-size: 2em; 
+            line-height: 1.7; 
+            margin-bottom: 30px; 
+            padding: 25px; 
+            border-radius: 8px; 
+            background-color: rgba(0,0,0,0.15); 
+            color: var(--text-color);
+            user-select: none;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            text-align: left; 
+            min-height: 100px; 
+            letter-spacing: 1px; 
+        }
+
+        .text-to-type-box .char-typed {
+            padding: 0.05em 0.1em; 
+        }
+        .text-to-type-box .char-current {
+            background-color: var(--highlight-color);
+            color: var(--bg-color); 
+            border-radius: 3px;
+        }
+        .text-to-type-box .char-correct {
+            color: var(--correct-color);
+        }
+        .text-to-type-box .char-incorrect {
+            color: var(--error-color);
+            background-color: rgba(202, 71, 84, 0.15); 
+        }
+
+        .user-input-field {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+            border: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .about-me-section {
+           display: none; 
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <section class="metrics-display">
+            <div><strong>Acurácia:</strong> <span id="accuracyDisplay">--</span>%</div>
+            <div><strong>Acertos:</strong> <span id="hitsDisplay">0</span></div>
+            <div><strong>Erros:</strong> <span id="missesDisplay">0</span></div>
+            <div><strong>Velocidade:</strong> <span id="wpmDisplay">--</span> WPM</div>
+        </section>
+
+        <section class="settings-section">
+            <p><strong>Caracteres disponíveis</strong> (clique para desabilitar/habilitar):</p>
+            <div id="availableCharsSetContainer"></div>
+            
+            <div class="flags-display">
+                <label class="custom-checkbox-label">
+                    <input type="checkbox" id="enableSpecialCharsFlag">
+                    <span class="custom-checkbox-span"></span> Caracteres Especiais
+                </label>
+                <label class="custom-checkbox-label">
+                    <input type="checkbox" id="enableNumbersFlag" checked>
+                    <span class="custom-checkbox-span"></span> Números
+                </label>
+                <label class="custom-checkbox-label">
+                    <input type="checkbox" id="enableRandomCombinationsFlag">
+                    <span class="custom-checkbox-span"></span> Combinações Aleatórias
+                </label>
+            </div>
+        </section>
+
+
+        <section class="typing-area-container">
+            <!-- O h2 foi escondido via CSS -->
+            <div id="textToType" class="text-to-type-box">
+                <!-- Palavras ou combinações serão inseridas aqui pelo JavaScript -->
+            </div>
+            <input type="text" id="userInput" class="user-input-field" placeholder="Comece a digitar aqui..." autocomplete="off" autocapitalize="none" spellcheck="false">
+        </section>
+    </div>
+
+    <!-- Seção "Quem eu sou" removida do fluxo principal para este design -->
+    <!-- <section id="about-section" class="about-me-section"> ... </section> -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const availableCharsContainer = document.getElementById('availableCharsSetContainer');
+            const textToTypeElement = document.getElementById('textToType');
+            const userInputElement = document.getElementById('userInput');
+
+            const accuracyDisplay = document.getElementById('accuracyDisplay');
+            const hitsDisplay = document.getElementById('hitsDisplay');
+            const missesDisplay = document.getElementById('missesDisplay');
+            const wpmDisplay = document.getElementById('wpmDisplay');
+
+            const enableSpecialCharsFlag = document.getElementById('enableSpecialCharsFlag');
+            const enableNumbersFlag = document.getElementById('enableNumbersFlag');
+            const enableRandomCombinationsFlag = document.getElementById('enableRandomCombinationsFlag');
+
+            let targetTextChars = [];
+            let currentTypedIndex = 0;
+            let currentWords = [];
+
+            let stats = {
+                hits: 0,
+                misses: 0,
+                startTime: null,
+                totalCharsTypedCorrectly: 0,
+            };
+            
+            const baseCharSet = {
+                uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                lowercase: "abcdefghijklmnopqrstuvwxyz", 
+                numbers: "0123456789",
+                special: "!@#$%^&*()_+-=[]{};':\",./<>?`~"
+            };
+
+            let disabledCharsFromPool = new Set(); 
+
+            const samplePhrases = [ 
+                "CONTRATOS", "PRONTOS", "ACEITAS", "ATIRE", "PORTA", "ASSENTO", "PONTAS", "TEORIAS", "CONSISTE",
+                "RAPTO", "COSTAS", "CAPACETE", "FETO", "FANTASIAS", "RESTAURANTE", "AZUL", "VOCE", "VERDADE",
+                "TEMPO", "MUNDO", "KEYBR", "TESTE", "DIGITAR", "RAPIDO", "PRECISAO", "INTERFACE", "CODIGO", "SIMPLES",
+                "COMPUTADOR", "PROGRAMACAO", "DESENVOLVEDOR", "ALGORITMO", "ESTRUTURA", "VARIAVEL", "FUNCAO"
+            ];
+
+            function getFullCharPoolForDisplay() {
+                return (baseCharSet.uppercase + baseCharSet.numbers + baseCharSet.special).split('').sort().join('');
+            }
+
+            function renderAvailableChars() {
+                availableCharsContainer.innerHTML = ''; 
+                const charsToDisplay = getFullCharPoolForDisplay().split('');
+                
+                charsToDisplay.forEach(char => {
+                    const charSpan = document.createElement('span');
+                    charSpan.textContent = char;
+                    charSpan.classList.add('char-selector');
+                    if (disabledCharsFromPool.has(char)) {
+                        charSpan.classList.add('disabled'); 
+                    }
+                    charSpan.addEventListener('click', () => {
+                        toggleCharDisabledState(char, charSpan);
+                        generateWordsToType(); 
+                    });
+                    availableCharsContainer.appendChild(charSpan);
+                });
+            }
+
+            function toggleCharDisabledState(char, spanElement) {
+                if (disabledCharsFromPool.has(char)) {
+                    disabledCharsFromPool.delete(char);
+                    spanElement.classList.remove('disabled');
+                } else {
+                    disabledCharsFromPool.add(char);
+                    spanElement.classList.add('disabled');
+                }
+            }
+            
+            function getActiveCharsForWordGeneration() {
+                let activeCharsForRandom = ""; 
+                let activeCharsForFilteringSet = new Set(); 
+
+                baseCharSet.uppercase.split('').forEach(char => {
+                    if (!disabledCharsFromPool.has(char)) {
+                        activeCharsForRandom += baseCharSet.lowercase[baseCharSet.uppercase.indexOf(char)]; 
+                        activeCharsForFilteringSet.add(char);
+                    }
+                });
+
+                if (enableNumbersFlag.checked) {
+                    baseCharSet.numbers.split('').forEach(char => {
+                        if (!disabledCharsFromPool.has(char)) {
+                            activeCharsForRandom += char;
+                            activeCharsForFilteringSet.add(char);
+                        }
+                    });
+                }
+                if (enableSpecialCharsFlag.checked) {
+                     baseCharSet.special.split('').forEach(char => {
+                        if (!disabledCharsFromPool.has(char)) {
+                            activeCharsForRandom += char;
+                            activeCharsForFilteringSet.add(char);
+                        }
+                    });
+                }
+                return {
+                    forRandomGeneration: activeCharsForRandom,
+                    forFilteringSamples: activeCharsForFilteringSet 
+                };
+            }
+
+            function generateRandomNumberSequence(minLength = 3, maxLength = 7) {
+                const activeNumbers = baseCharSet.numbers.split('').filter(n => !disabledCharsFromPool.has(n) && enableNumbersFlag.checked).join('');
+                if (activeNumbers.length === 0) return ""; 
+
+                const length = Math.floor(Math.random() * (maxLength - minLength + 1)) + minLength;
+                let numberSeq = "";
+                for (let i = 0; i < length; i++) {
+                    numberSeq += activeNumbers.charAt(Math.floor(Math.random() * activeNumbers.length));
+                }
+                return numberSeq;
+            }
+
+            function generateWordsToType() {
+                console.log("Gerando palavras..."); // DEBUG
+                const { forRandomGeneration, forFilteringSamples } = getActiveCharsForWordGeneration();
+                currentWords = [];
+
+                if (enableRandomCombinationsFlag.checked) {
+                    if (forRandomGeneration.length > 0) {
+                        for (let i = 0; i < 15; i++) { 
+                            let wordLength = Math.floor(Math.random() * 5) + 3; 
+                            let randomWord = "";
+                            for (let j = 0; j < wordLength; j++) {
+                                randomWord += forRandomGeneration.charAt(Math.floor(Math.random() * forRandomGeneration.length));
+                            }
+                            currentWords.push(randomWord.toUpperCase());
+                        }
+                    } else {
+                         currentWords.push("---"); 
+                    }
+                } else {
+                    let tempWords = [...samplePhrases].sort(() => 0.5 - Math.random());
+                    currentWords = tempWords.map(word => { 
+                        const filteredWord = word.toUpperCase().split('').filter(char => forFilteringSamples.has(char)).join('');
+                        return filteredWord;
+                    }).filter(word => word.length > 1); 
+                    
+                    if (currentWords.length < 5) { 
+                         currentWords = ["FILTRO", "MUITO", "RIGIDO"];
+                         if (forRandomGeneration.length > 0) { 
+                            for (let i = 0; i < 3; i++) { currentWords.push(forRandomGeneration.charAt(Math.floor(Math.random() * forRandomGeneration.length)).repeat(4).toUpperCase());}
+                         }
+                    }
+                    currentWords = currentWords.slice(0,12); 
+                }
+
+                if (enableNumbersFlag.checked) {
+                    const activeNumbersForSequence = baseCharSet.numbers.split('').filter(n => !disabledCharsFromPool.has(n)).join('');
+                    if (activeNumbersForSequence.length > 0) {
+                        const numberOfNumericWords = enableRandomCombinationsFlag.checked ? 4 : Math.floor(Math.random() * 2) + 1; 
+                        for (let i = 0; i < numberOfNumericWords; i++) {
+                            const numSeq = generateRandomNumberSequence();
+                            if (numSeq) { 
+                                currentWords.splice(Math.floor(Math.random() * (currentWords.length + 1)), 0, numSeq);
+                            }
+                        }
+                    }
+                }
+                
+                currentWords = currentWords.sort(() => 0.5 - Math.random()).slice(0, 15); 
+
+                const fullText = currentWords.filter(w => w.length > 0).join(" ");
+                targetTextChars = fullText.split('');
+                console.log("Texto para digitar:", fullText); // DEBUG
+                renderTextToType();
+                resetTypingState();
+            }
+
+            function renderTextToType() {
+                textToTypeElement.innerHTML = '';
+                targetTextChars.forEach((char, index) => {
+                    const span = document.createElement('span');
+                    span.textContent = char;
+                    span.classList.add('char-typed');
+                    if (index === currentTypedIndex) {
+                        span.classList.add('char-current');
+                    }
+                    textToTypeElement.appendChild(span);
+                });
+            }
+
+            function resetTypingState() {
+                currentTypedIndex = 0;
+                stats = { hits: 0, misses: 0, startTime: null, totalCharsTypedCorrectly: 0 };
+                userInputElement.value = '';
+                userInputElement.focus(); // Garante o foco
+                updateMetricsDisplay();
+                if (targetTextChars.length > 0) {
+                     highlightCurrentChar();
+                }
+            }
+            
+            function highlightCurrentChar() {
+                // Usa textToTypeElement.children em vez de .childNodes
+                const charNodes = textToTypeElement.children;
+                for (let i = 0; i < charNodes.length; i++) {
+                    charNodes[i].classList.remove('char-current');
+                    if (i === currentTypedIndex) {
+                        charNodes[i].classList.add('char-current');
+                    }
+                }
+            }
+
+            function updateMetricsDisplay() {
+                const totalTyped = stats.hits + stats.misses;
+                const accuracy = totalTyped > 0 ? ((stats.hits / totalTyped) * 100).toFixed(1) : '--';
+                accuracyDisplay.textContent = accuracy;
+                hitsDisplay.textContent = stats.hits;
+                missesDisplay.textContent = stats.misses;
+
+                if (stats.startTime && stats.totalCharsTypedCorrectly > 0) {
+                    const currentTime = new Date();
+                    const timeDiffSeconds = (currentTime - stats.startTime) / 1000;
+                    if (timeDiffSeconds > 0.5) { 
+                        const wpm = ((stats.totalCharsTypedCorrectly / 5) / (timeDiffSeconds / 60)).toFixed(1);
+                        wpmDisplay.textContent = wpm;
+                    } else {
+                        wpmDisplay.textContent = '--';
+                    }
+                } else {
+                    wpmDisplay.textContent = '--';
+                }
+            }
+
+            userInputElement.addEventListener('keydown', (e) => {
+                console.log('keydown event:', e.key, '| currentTypedIndex:', currentTypedIndex, '| targetLength:', targetTextChars.length); // DEBUG INICIAL
+
+                if (currentTypedIndex >= targetTextChars.length && targetTextChars.length > 0) {
+                    console.log('Fim do texto, gerando novas palavras.'); // DEBUG
+                    generateWordsToType();
+                    return;
+                }
+                if (targetTextChars.length === 0) {
+                    console.log('Sem texto para digitar.'); // DEBUG
+                    userInputElement.value = ''; 
+                    return;
+                }
+
+                if (!stats.startTime && currentTypedIndex === 0) {
+                    stats.startTime = new Date();
+                }
+
+                const pressedKey = e.key;
+                // Usa textToTypeElement.children em vez de .childNodes
+                const charSpan = textToTypeElement.children[currentTypedIndex]; 
+                const targetChar = targetTextChars[currentTypedIndex];
+
+
+                console.log(`Tecla pressionada: "${pressedKey}", Caractere alvo: "${targetChar}"`); // DEBUG
+
+                if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab', 'Escape', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown', 'Insert', 'Delete', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12'].includes(pressedKey) && pressedKey !== targetChar) {
+                    console.log("Tecla modificadora/controle ignorada:", pressedKey); // DEBUG
+                    return; 
+                }
+
+                if (pressedKey.length === 1 || pressedKey === 'Backspace') { 
+                    e.preventDefault(); 
+                    
+                    if (pressedKey === 'Backspace') {
+                        console.log("Backspace pressionado"); // DEBUG
+                        if (currentTypedIndex > 0) {
+                            // Usa textToTypeElement.children
+                            textToTypeElement.children[currentTypedIndex]?.classList.remove('char-current');
+                            currentTypedIndex--;
+                            const prevCharSpan = textToTypeElement.children[currentTypedIndex];
+                            if(prevCharSpan) { // Verifica se prevCharSpan existe
+                                prevCharSpan.classList.remove('char-correct', 'char-incorrect');
+                                prevCharSpan.classList.add('char-current');
+                            }
+                        }
+                    } else { // Tecla de caractere (length === 1)
+                        console.log("Tecla de caractere pressionada:", pressedKey); // DEBUG
+                        if (charSpan) charSpan.classList.remove('char-current');
+                        
+                        const keyForComparison = pressedKey.toUpperCase();
+                        
+                        if (keyForComparison === targetChar || (targetChar === ' ' && pressedKey === ' ')) { 
+                            console.log("CORRETO!"); // DEBUG
+                            if (charSpan) charSpan.classList.add('char-correct');
+                            stats.hits++;
+                            stats.totalCharsTypedCorrectly++;
+                        } else {
+                            console.log("INCORRETO!"); // DEBUG
+                            if (charSpan) charSpan.classList.add('char-incorrect');
+                            stats.misses++;
+                        }
+                        currentTypedIndex++;
+                        if (currentTypedIndex < targetTextChars.length) {
+                            // Usa textToTypeElement.children
+                            if(textToTypeElement.children[currentTypedIndex]) { // Verifica se existe
+                                textToTypeElement.children[currentTypedIndex].classList.add('char-current');
+                            }
+                        }
+                    }
+                } else {
+                    console.log("Tecla não tratada:", pressedKey); // DEBUG
+                }
+                updateMetricsDisplay();
+                userInputElement.value = ''; 
+            });
+
+            function handleFlagChange() {
+                console.log("Flag alterada. Recalculando disabledChars e gerando palavras."); // DEBUG
+                if (!enableNumbersFlag.checked) {
+                    baseCharSet.numbers.split('').forEach(char => disabledCharsFromPool.add(char));
+                } else {
+                    baseCharSet.numbers.split('').forEach(char => disabledCharsFromPool.delete(char));
+                }
+
+                if (!enableSpecialCharsFlag.checked) {
+                    baseCharSet.special.split('').forEach(char => disabledCharsFromPool.add(char));
+                } else {
+                    baseCharSet.special.split('').forEach(char => disabledCharsFromPool.delete(char));
+                }
+                
+                renderAvailableChars(); 
+                generateWordsToType();  
+            }
+
+            [enableSpecialCharsFlag, enableNumbersFlag, enableRandomCombinationsFlag].forEach(flag => {
+                flag.addEventListener('change', handleFlagChange);
+            });
+            
+            // Inicialização
+            console.log("Inicializando DevKey..."); // DEBUG
+            renderAvailableChars(); 
+            handleFlagChange(); 
+            userInputElement.focus();
+            console.log("DevKey inicializado. Foco no input."); // DEBUG
+        });
+    </script>
+</body>
+</html>
