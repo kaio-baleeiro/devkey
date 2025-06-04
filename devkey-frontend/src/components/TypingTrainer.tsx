@@ -46,7 +46,7 @@ const TypingTrainer: React.FC = () => {
 
   function getActiveCharsForWordGeneration() {
     let activeCharsForRandom = '';
-    let activeCharsForFilteringSet = new Set<string>();
+    const activeCharsForFilteringSet = new Set<string>();
     baseCharSet.uppercase.split('').forEach((char, idx) => {
       if (!disabledChars.has(char)) {
         activeCharsForRandom += baseCharSet.lowercase[idx];
@@ -92,7 +92,7 @@ const TypingTrainer: React.FC = () => {
     if (enableRandomCombinations) {
       if (forRandomGeneration.length > 0) {
         for (let i = 0; i < 15; i++) {
-          let wordLength = Math.floor(Math.random() * 5) + 3;
+          const wordLength = Math.floor(Math.random() * 5) + 3;
           let randomWord = '';
           for (let j = 0; j < wordLength; j++) {
             randomWord += forRandomGeneration.charAt(Math.floor(Math.random() * forRandomGeneration.length));
@@ -103,7 +103,7 @@ const TypingTrainer: React.FC = () => {
         words.push('---');
       }
     } else {
-      let tempWords = [...samplePhrases].sort(() => 0.5 - Math.random());
+      const tempWords = [...samplePhrases].sort(() => 0.5 - Math.random());
       words = tempWords
         .map((word) => {
           const filteredWord = word

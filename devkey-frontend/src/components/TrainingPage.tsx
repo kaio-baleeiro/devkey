@@ -1,10 +1,10 @@
 // src/pages/TrainingPage.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const initialTargetText = "o texto para digitar aqui"; // Texto de exemplo
 
 function TrainingPage() {
-  const [targetText, setTargetText] = useState<string[]>(initialTargetText.split(''));
+  const [targetText] = useState<string[]>(initialTargetText.split(''));
   const [userInput, setUserInput] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
 
