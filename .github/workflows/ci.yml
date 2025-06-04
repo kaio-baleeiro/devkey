@@ -22,3 +22,28 @@ jobs:
         working-directory: ./devkey-frontend
       - run: npm run build
         working-directory: ./devkey-frontend
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+      - run: npm ci
+        working-directory: ./devkey-frontend
+      - run: npm run build
+        working-directory: ./devkey-frontend
+      - name: Deploy to publish branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./devkey-frontend/dist
+          publish_branch: publish
